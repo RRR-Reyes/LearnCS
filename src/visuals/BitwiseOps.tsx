@@ -1,4 +1,5 @@
 import { useState } from "react";
+import type { CSSProperties } from "react";
 
 const W = 8;
 const MASK = 0xff;
@@ -24,15 +25,20 @@ function Register({ name, value, onFlip, tone }: { name: string; value: number; 
     <div className={`reg ${tone ?? ""}`}>
       <span className="reg-name">{name}</span>
       <div className="reg-bits">
-        {bitsOf(value).map((b, i) => (
+        {bitsOf(value).map((bit, i) => (
           <button
             key={i}
-            className={`bit bit-sm ${b ? "is-on" : ""}`}
+            className={`hl-tile is-btn ${bit ? "is-on" : ""}`}
+            style={{ "--wh": [-3, 2, 5, -1][i % 4], "--wl": `${[2, -2, 1, -3][i % 4]}%` } as CSSProperties}
             disabled={!onFlip}
             onClick={() => onFlip?.(W - 1 - i)}
+            aria-pressed={!!bit}
             aria-label={`${name} bit ${W - 1 - i}`}
           >
-            <strong>{b}</strong>
+            <span className="flip-inner">
+              <span className="flip-face flip-front">0</span>
+              <span className="flip-face flip-back">1</span>
+            </span>
           </button>
         ))}
       </div>
@@ -41,19 +47,24 @@ function Register({ name, value, onFlip, tone }: { name: string; value: number; 
   );
 }
 
-/** Edit $t1 and $t2 bit by bit and watch each instruction combine them. */
-export default function BitwiseOps() {
+/**
+ * Edit $t1 and $t2 bit by bit and watch each instruction combine them.
+ * `ops` limits which instructions are offered (the reading introduces them
+ * one stage at a time); `fresh` marks the ones the current stage adds.
+ */
+export function BitwiseOps({ ops: keys, fresh = [], focus }: { ops?: string[]; fresh?: string[]; focus?: string }) {
+  const available = keys ? OPS.filter((o) => keys.includes(o.key)) : OPS;
   const [a, setA] = useState(0b11001010);
   const [b, setB] = useState(0b01011100);
-  const [op, setOp] = useState(OPS[0]);
+  const [op, setOp] = useState(available.find((o) => o.key === focus) ?? available[0]);
   const [sh, setSh] = useState(2);
   const out = op.fn(a, b, sh);
 
   return (
     <div className="viz viz-bitwise">
       <div className="viz-row viz-chips">
-        {OPS.map((o) => (
-          <button key={o.key} className={`chip ${o.key === op.key ? "is-on" : ""}`} aria-pressed={o.key === op.key} onClick={() => setOp(o)}>
+        {available.map((o) => (
+          <button key={o.key} className={`chip ${o.key === op.key ? "is-on" : ""} ${fresh.includes(o.key) ? "is-new" : ""}`} aria-pressed={o.key === op.key} onClick={() => setOp(o)}>
             {o.asm}
           </button>
         ))}
@@ -73,7 +84,7 @@ export default function BitwiseOps() {
         </label>
       )}
       <div className="reg-rule" />
-      <Register key={`${op.key}-${a}-${b}-${sh}`} name="$t0" value={out} tone="is-result" />
+      <Register name="$t0" value={out} tone="is-result" />
 
       <p className="viz-readout">
         {op.key === "sra"
@@ -89,3 +100,11 @@ export default function BitwiseOps() {
     </div>
   );
 }
+
+export default BitwiseOps;
+
+/** A stage of the reading: only these instructions, opening on `focus`. */
+export const bitwiseStage = (ops: string[], fresh: string[]) => {
+  const Stage = () => <BitwiseOps ops={ops} fresh={fresh} focus={fresh[0]} />;
+  return Stage;
+};

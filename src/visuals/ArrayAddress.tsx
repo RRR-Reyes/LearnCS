@@ -4,7 +4,7 @@ import { useState } from "react";
  * Click a cell of a 2D array to see where it lives in memory under
  * row-major or column-major order, and the formula that finds it.
  */
-export default function ArrayAddress() {
+export default function ArrayAddress({ mips = false }: { mips?: boolean }) {
   const [rows, setRows] = useState(3);
   const [cols, setCols] = useState(4);
   const [size, setSize] = useState(4);
@@ -64,6 +64,8 @@ export default function ArrayAddress() {
         ))}
       </div>
 
+      {mips && <MipsLines i={i} j={j} rows={rows} cols={cols} size={size} rowMajor={rowMajor} base={base} />}
+
       <p className="viz-readout">
         addr(A[{i}][{j}]) = base + ({rowMajor ? `${i}·${cols} + ${j}` : `${j}·${rows} + ${i}`}) × {size} = 0x
         {base.toString(16)} + {index * size} = <strong>0x{addr.toString(16)}</strong>
@@ -71,3 +73,40 @@ export default function ArrayAddress() {
     </div>
   );
 }
+
+const LOADS: Record<number, string> = { 1: "lb", 2: "lh", 4: "lw", 8: "l.d" };
+
+/** The MIPS a compiler would emit for A[i][j], with each register's value after the line runs. */
+function MipsLines({ i, j, rows, cols, size, rowMajor, base }: { i: number; j: number; rows: number; cols: number; size: number; rowMajor: boolean; base: number }) {
+  const [outer, inner, span] = rowMajor ? [i, j, cols] : [j, i, rows];
+  const index = outer * span + inner;
+  const shift = Math.log2(size);
+  const scale = Number.isInteger(shift)
+    ? shift === 0
+      ? null
+      : { code: `sll  $t2, $t2, ${shift}`, note: `× ${size} bytes (shift by ${shift})` }
+    : { code: `mul  $t2, $t2, ${size}`, note: `× ${size} bytes` };
+  const lines: [string, string, string, string][] = [
+    [`li   $t0, ${outer}`, rowMajor ? "i" : "j", String(outer), "$t0"],
+    [`li   $t1, ${inner}`, rowMajor ? "j" : "i", String(inner), "$t1"],
+    [`mul  $t2, $t0, ${span}`, `× ${rowMajor ? "cols" : "rows"}`, String(outer * span), "$t2"],
+    ["add  $t2, $t2, $t1", `+ ${rowMajor ? "j" : "i"}`, String(index), "$t2"],
+    ...(scale ? [[scale.code, scale.note, String(index * size), "$t2"] as [string, string, string, string]] : []),
+    ["add  $t2, $t2, $s0", "+ base ($s0)", "0x" + (base + index * size).toString(16), "$t2"],
+    [`${LOADS[size] ?? "lw"}   $t3, 0($t2)`, `load A[${i}][${j}]`, "", ""],
+  ];
+  return (
+    <ol className="mips-code array-mips" aria-label="Generated MIPS">
+      {lines.map(([code, note, val, reg], k) => (
+        <li key={k}>
+          <code>{code}</code>
+          <span className="array-mips-note"># {note}</span>
+          <span className="array-mips-val">{val && `${reg} = ${val}`}</span>
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+/** The C-to-MIPS stage: the same grid, plus the code that computes the address. */
+export const ArrayToMips = () => <ArrayAddress mips />;
