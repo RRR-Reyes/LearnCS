@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { split, Stage } from "./Stage";
 
 type Kind = "ms2" | "ms4" | "lcg" | "lfsr";
 
@@ -17,7 +18,7 @@ const LFSR_PRESETS = [
  * Step a pseudo-random generator and see its values land on a ring; when a
  * value repeats, the cycle closes and the period is highlighted.
  */
-export default function RngStepper() {
+function RngStepper() {
   const [kind, setKind] = useState<Kind>("lcg");
   const [seed, setSeed] = useState(7);
   const [a, setA] = useState(5);
@@ -102,7 +103,13 @@ export default function RngStepper() {
           ))}
         </div>
       )}
+      <div className="sq-actions">
+        <button className="btn" onClick={() => setSteps(steps + 1)} disabled={steps >= 40}>Next</button>
+        <button className="btn btn-soft" onClick={() => setSteps(Math.min(40, steps + 10))} disabled={steps >= 40}>+10</button>
+        <button className="btn btn-ghost" onClick={reset}>Reset</button>
+      </div>
 
+      <Stage>
       {kind === "lcg" && (
         <svg viewBox="-120 -120 240 240" className="mod-svg" role="img" aria-label="LCG values on a ring of m positions">
           <circle r="104" className="mod-face" />
@@ -146,11 +153,6 @@ export default function RngStepper() {
         </div>
       )}
 
-      <div className="sq-actions">
-        <button className="btn" onClick={() => setSteps(steps + 1)} disabled={steps >= 40}>Next</button>
-        <button className="btn btn-soft" onClick={() => setSteps(Math.min(40, steps + 10))} disabled={steps >= 40}>+10</button>
-        <button className="btn btn-ghost" onClick={reset}>Reset</button>
-      </div>
       {kind !== "lfsr" && (
         <p className="viz-readout" aria-live="polite">
           {kind === "lcg" && period !== null
@@ -162,6 +164,9 @@ export default function RngStepper() {
             : "Square, pad, keep the middle digits. Watch for it collapsing to 0 or a short loop."}
         </p>
       )}
+      </Stage>
     </div>
   );
 }
+
+export default split(RngStepper);

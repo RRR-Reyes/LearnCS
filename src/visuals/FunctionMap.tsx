@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Stage } from "./Stage";
 
 const DOMAIN = ["1", "2", "3", "4"];
 const CODOMAIN = ["a", "b", "c", "d"];
@@ -52,6 +53,7 @@ export default function FunctionMap() {
         ))}
       </div>
 
+      <Stage>
       <svg viewBox="0 0 400 250" className="func-svg" role="img" aria-label="Mapping diagram">
         <ellipse cx="90" cy="124" rx="58" ry="116" className="func-set" />
         <ellipse cx="310" cy="124" rx="58" ry="116" className="func-set" />
@@ -111,6 +113,7 @@ export default function FunctionMap() {
         <span className={`badge ${surjective ? "is-yes" : "is-no"}`}>Surjective</span>
       </div>
       <p className="viz-readout" aria-live="polite">{verdict}</p>
+      </Stage>
     </div>
   );
 }

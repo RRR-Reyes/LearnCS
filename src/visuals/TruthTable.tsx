@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { split, Stage } from "./Stage";
 
 type Expr = { label: string; vars: 2 | 3; fn: (p: boolean, q: boolean, r: boolean) => boolean };
 
@@ -23,7 +24,7 @@ const rowsFor = (n: number) =>
   Array.from({ length: 2 ** n }, (_, i) => Array.from({ length: n }, (_, k) => !((i >> (n - 1 - k)) & 1)));
 
 /** Flip the switches or click a row; the table and bulb show the chosen expression. */
-export default function TruthTable() {
+function TruthTable() {
   const [expr, setExpr] = useState(EXPRS[0]);
   const [vals, setVals] = useState([true, false, true]);
   const n = expr.vars;
@@ -68,6 +69,7 @@ export default function TruthTable() {
         </div>
       </div>
 
+      <Stage>
       <table className="truth-table" key={expr.label}>
         <thead>
           <tr>
@@ -97,6 +99,9 @@ export default function TruthTable() {
         True in {trueCount} of {rows.length} rows
         {trueCount === rows.length ? " · a tautology" : trueCount === 0 ? " · a contradiction" : ""}
       </p>
+      </Stage>
     </div>
   );
 }
+
+export default split(TruthTable);

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { CSSProperties } from "react";
+import { split, Stage } from "./Stage";
 
 type Rel = { key: string; label: string; a: [number, number]; b: [number, number]; sub: boolean; proper: boolean; disjoint: boolean; empty: boolean; note: string };
 
@@ -13,7 +14,7 @@ const RELS: Rel[] = [
 ];
 
 /** Pick an arrangement of A and B; the circles glide into place and the relation badges update. */
-export default function SetRelations() {
+function SetRelations() {
   const [rel, setRel] = useState(RELS[0]);
   const badges: [string, string, boolean][] = [
     ["A ⊆ B", "subset", rel.sub],
@@ -29,6 +30,7 @@ export default function SetRelations() {
           <button key={r.key} className={`chip ${r === rel ? "is-on" : ""}`} aria-pressed={r === rel} onClick={() => setRel(r)}>{r.label}</button>
         ))}
       </div>
+      <Stage>
       <svg viewBox="0 0 500 300" className="venn-svg" role="img" aria-label={`Sets A and B: ${rel.label}`}>
         <rect x="10" y="10" width="480" height="280" rx="18" className="venn-universe" />
         <circle className="rel-circle rel-b" cx="250" cy="150" style={{ transform: `translate(${rel.b[0]}px, 0px)`, r: rel.b[1] } as CSSProperties} />
@@ -45,6 +47,9 @@ export default function SetRelations() {
         ))}
       </div>
       <p className="viz-readout" aria-live="polite">{rel.note}</p>
+      </Stage>
     </div>
   );
 }
+
+export default split(SetRelations);

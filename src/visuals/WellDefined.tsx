@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { split, Stage } from "./Stage";
 
 type Rule = { label: string; f: (a: number, b: number) => number | null; ok: boolean; why: string };
 
@@ -19,7 +20,7 @@ const ZERO = [0, 1];
 const fmt = (v: number | null) => (v === null ? "undefined" : Number.isInteger(v) ? String(v) : v.toFixed(3));
 
 /** Feed one number written several ways through a rule; mismatched outputs mean it isn't well defined. */
-export default function WellDefined() {
+function WellDefined() {
   const [rule, setRule] = useState(RULES[0]);
   const outs = FORMS.map(([a, b]) => rule.f(a, b));
   const agree = outs.every((v) => v === outs[0]);
@@ -30,6 +31,7 @@ export default function WellDefined() {
       <div className="viz-row viz-chips">
         {RULES.map((r) => <button key={r.label} className={`chip chip-sm mono ${r === rule ? "is-on" : ""}`} onClick={() => setRule(r)}>{r.label}</button>)}
       </div>
+      <Stage>
       <p className="wd-caption">The same number, ½, written four ways:</p>
       <div className="wd-rows" key={rule.label}>
         {FORMS.map(([a, b], i) => (
@@ -49,6 +51,9 @@ export default function WellDefined() {
         <strong>{rule.ok ? "Well defined" : "Not well defined"}</strong>
         <span>{agree ? "" : "Equal inputs gave different outputs. "}{rule.why}</span>
       </div>
+      </Stage>
     </div>
   );
 }
+
+export default split(WellDefined);

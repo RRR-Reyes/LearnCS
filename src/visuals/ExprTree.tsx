@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { split, Stage } from "./Stage";
 
 type Val = number | boolean;
 type Node = { id: number; op: string; kids: Node[]; value?: Val };
@@ -153,7 +154,7 @@ const PRESETS = [
 ];
 
 /** Type a Python expression and step through its evaluation in precedence order. */
-export default function ExprTree() {
+function ExprTree() {
   const [src, setSrc] = useState(PRESETS[2]);
   const [step, setStep] = useState(0);
   const tree = useMemo(() => parse(src), [src]);
@@ -184,6 +185,16 @@ export default function ExprTree() {
         spellCheck={false}
       />
 
+      {run && (
+        <div className="sq-actions">
+          <button className="btn" onClick={() => setStep((s) => Math.min(s + 1, run.order.length))} disabled={!!finished}>Evaluate next</button>
+          <button className="btn btn-soft" onClick={() => setStep(run.order.length)} disabled={!!finished}>Finish</button>
+          <button className="btn btn-ghost" onClick={() => setStep(0)}>Reset</button>
+          <span className="mips-count">step {step} / {run.order.length}</span>
+        </div>
+      )}
+
+      <Stage>
       {!tree || !placed || !run ? (
         <p className="viz-readout">Can't read that expression. Use numbers, + − * / // % **, comparisons, and, or, not, and parentheses.</p>
       ) : (
@@ -207,12 +218,6 @@ export default function ExprTree() {
             })}
           </svg>
 
-          <div className="sq-actions">
-            <button className="btn" onClick={() => setStep((s) => Math.min(s + 1, run.order.length))} disabled={!!finished}>Evaluate next</button>
-            <button className="btn btn-soft" onClick={() => setStep(run.order.length)} disabled={!!finished}>Finish</button>
-            <button className="btn btn-ghost" onClick={() => setStep(0)}>Reset</button>
-            <span className="mips-count">step {step} / {run.order.length}</span>
-          </div>
           <p className="viz-readout" aria-live="polite">
             {finished
               ? `Result: ${show(run.result)}${typeof run.result === "boolean" ? ` → enter ${run.result ? 1 : 0}` : ""}${run.skipped.size ? " · greyed nodes were short-circuited" : ""}`
@@ -220,6 +225,9 @@ export default function ExprTree() {
           </p>
         </>
       )}
+      </Stage>
     </div>
   );
 }
+
+export default split(ExprTree);

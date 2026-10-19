@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { split, Stage } from "./Stage";
 
 type Fn = { label: string; f: (x: number) => number };
 
@@ -11,7 +12,7 @@ const FNS: Fn[] = [
 ];
 
 /** Drop a value in and watch it pass through two machines; swap the order to compare g∘f with f∘g. */
-export default function CompositionMachine() {
+function CompositionMachine() {
   const [f, setF] = useState(FNS[0]);
   const [g, setG] = useState(FNS[2]);
   const [x, setX] = useState(3);
@@ -49,7 +50,9 @@ export default function CompositionMachine() {
         input x = <strong>{x}</strong>
         <input type="range" min={-5} max={8} value={x} onChange={(e) => setX(+e.target.value)} />
       </label>
+      <button className="chip cart-swap" onClick={() => setGFirst(!gFirst)}>⇄ Swap order (show {gFirst ? "g ∘ f" : "f ∘ g"})</button>
 
+      <Stage>
       <div className="machine-row" aria-live="polite">
         <span className="token mono">{x}</span>
         <span className={`belt ${stage >= 1 ? "is-run" : ""}`} aria-hidden />
@@ -62,12 +65,14 @@ export default function CompositionMachine() {
         <span className={`token token-out mono ${stage >= 2 ? "pop" : "is-ghost"}`} key={`o${stage >= 2}-${out}`}>{stage >= 2 ? out : "?"}</span>
       </div>
 
-      <button className="chip cart-swap" onClick={() => setGFirst(!gFirst)}>⇄ Swap order (show {gFirst ? "g ∘ f" : "f ∘ g"})</button>
       <p className="viz-readout mono">
         ({nameS} ∘ {nameF})({x}) = {nameS}({nameF}({x})) = {nameS}({mid}) = <strong>{out}</strong>
         <br />
         the other order gives <strong>{other}</strong> · {out === other ? "same here, but that's a coincidence of these inputs" : "different, so composition isn't commutative"}
       </p>
+      </Stage>
     </div>
   );
 }
+
+export default split(CompositionMachine);

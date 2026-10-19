@@ -15,7 +15,7 @@ export const StageTarget = createContext<HTMLElement | null>(null);
  */
 export function Stage({ children }: { children: ReactNode }) {
   const target = useContext(StageTarget);
-  return target ? createPortal(<div className="stage">{children}</div>, target) : <>{children}</>;
+  return target ? createPortal(<div className="stage viz">{children}</div>, target) : <>{children}</>;
 }
 
 /** Marks a visual whose controls belong inline in the reading (it uses <Stage>). */

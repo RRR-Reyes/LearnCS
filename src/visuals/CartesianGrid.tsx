@@ -1,10 +1,11 @@
 import { useState } from "react";
+import { split, Stage } from "./Stage";
 
 const POOL_A = ["a", "b", "c", "d"];
 const POOL_B = ["1", "2", "3", "4"];
 
 /** Toggle elements of A and B; every ordered pair pops into the grid. Swap to compare A × B with B × A. */
-export default function CartesianGrid() {
+function CartesianGrid() {
   const [a, setA] = useState(["a", "b"]);
   const [b, setB] = useState(["1", "2", "3"]);
   const [swapped, setSwapped] = useState(false);
@@ -31,6 +32,7 @@ export default function CartesianGrid() {
       {picker("B", POOL_B, b, setB)}
       <button className="chip cart-swap" onClick={() => setSwapped(!swapped)}>⇄ Show {swapped ? "A × B" : "B × A"}</button>
 
+      <Stage>
       <div className="cart-board" key={`${swapped}`}>
         {rows.length === 0 || cols.length === 0 ? (
           <div className="cart-empty pop"><strong className="mono">∅</strong><span>One side is empty, so no pairs can be formed.</span></div>
@@ -59,6 +61,9 @@ export default function CartesianGrid() {
         |{swapped ? "B × A" : "A × B"}| = {rows.length} × {cols.length} = <strong>{rows.length * cols.length}</strong>
         {swapped && rows.length && cols.length ? " · same size, but every pair is reversed" : ""}
       </p>
+      </Stage>
     </div>
   );
 }
+
+export default split(CartesianGrid);

@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import FunctionMap from "./FunctionMap";
+import { split, Stage } from "./Stage";
 
 type Dom = "N" | "Z" | "R";
 type Fn = { label: string; f: (x: number) => number; defined?: (x: number) => boolean };
@@ -52,6 +53,11 @@ function GraphTests() {
           <button key={k} className={`chip ${k === dom ? "is-on" : ""}`} onClick={() => setDom(k)}>{DOMS[k].label}</button>
         ))}
       </div>
+      <label className="growth-n">
+        horizontal line y = <strong>{level}</strong>
+        <input type="range" min={-6} max={6} step={1} value={level} onChange={(e) => setLevel(+e.target.value)} />
+      </label>
+      <Stage>
       <svg viewBox={`0 0 ${W} ${H}`} className="fgraph" role="img" aria-label={`${fn.label} on ${d.label}`}>
         <line x1="0" y1={sy(0)} x2={W} y2={sy(0)} className="axis" />
         <line x1={sx(0)} y1="0" x2={sx(0)} y2={H} className="axis" />
@@ -63,10 +69,6 @@ function GraphTests() {
         <line x1="0" y1={sy(level)} x2={W} y2={sy(level)} className="hline" />
         {hits.map(([x, y]) => <circle key={`h${x}`} cx={sx(x)} cy={sy(y)} r="8" className="hline-hit" />)}
       </svg>
-      <label className="growth-n">
-        horizontal line y = <strong>{level}</strong>
-        <input type="range" min={-6} max={6} step={1} value={level} onChange={(e) => setLevel(+e.target.value)} />
-      </label>
       <div className="func-badges">
         <span className={`badge ${total ? "is-yes" : "is-no"}`}>Function</span>
         <span className={`badge ${verdict.inj ? "is-yes" : "is-no"}`}>Injective</span>
@@ -76,6 +78,7 @@ function GraphTests() {
         {hits.length > 1 ? `y = ${level} is hit ${hits.length} times here, so not injective. ` : hits.length === 0 ? `Nothing maps to y = ${level} in this window. ` : `y = ${level} is hit once. `}
         {!total ? "Some input has no output in the codomain, so it isn't a function on this domain." : verdict.why}
       </p>
+      </Stage>
     </>
   );
 }
@@ -95,7 +98,7 @@ function classify(label: string, dom: Dom): { inj: boolean; sur: boolean; why: s
 }
 
 /** Function classification: an arrow diagram, and a graph with line tests. */
-export default function FunctionClassify() {
+function FunctionClassify() {
   const [tab, setTab] = useState<"map" | "graph">("map");
   return (
     <div className="viz">
@@ -107,3 +110,5 @@ export default function FunctionClassify() {
     </div>
   );
 }
+
+export default split(FunctionClassify);

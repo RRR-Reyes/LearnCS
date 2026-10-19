@@ -365,7 +365,9 @@ svg text { font-family: var(--font); }
 .g-edge { stroke: hsl(var(--uh) 20% 70%); stroke-width: 2.5; transition: stroke 0.3s, stroke-width 0.3s; animation: fade 0.3s both; }
 .g-edge.is-tree { stroke: hsl(var(--uh) 55% 45%); stroke-width: 4; }
 .g-weight { text-anchor: middle; font-size: 12px; font-weight: 600; fill: var(--ink-3); paint-order: stroke; stroke: #fff; stroke-width: 4px; }
-.g-node { cursor: pointer; animation: pop 0.35s var(--ease-out) both; }
+/* The pop runs on the circle: a CSS transform on the <g> would override its translate() attribute. */
+.g-node { cursor: pointer; }
+.g-node circle { animation: pop 0.35s var(--ease-out) both; transform-box: fill-box; transform-origin: center; }
 .g-node circle { fill: #fff; stroke: hsl(var(--uh) 35% 50%); stroke-width: 2; transition: fill 0.25s, stroke 0.25s; }
 .g-node text { text-anchor: middle; font-weight: 600; font-size: 13px; pointer-events: none; }
 .g-node .g-deg { font-size: 11px; fill: hsl(var(--uh) 50% 40%); }
@@ -913,3 +915,30 @@ svg text { font-family: var(--font); }
 .st-formula { margin: 6px 0 22px; font-size: 1.05rem; overflow-x: auto; overflow-y: hidden; }
 .st-formula .katex-display { margin: 0.4em 0; }
 .st-unit .tex .katex { font-size: 1.05em; }
+
+/* ---------- split visuals: the stage on the right ---------- */
+/* Displays get room to breathe on the white stage; their controls stay in the reading. */
+.st-viz .stage { gap: 18px; }
+.st-viz .stage svg { max-height: 62vh; }
+.st-viz .stage .mod-svg { max-height: 46vh; }
+.st-viz .stage .hist { height: 38vh; }
+.st-viz .stage .stairs { height: 42vh; }
+.st-viz .stage .ev-plot { max-height: 70vh; }
+.st-viz .stage .numline { max-height: 90px; }
+.st-viz .stage .machine-row { justify-content: center; padding: 6vh 0; }
+.st-viz .stage .machine-row .token { font-size: 1.4rem; }
+.st-viz .stage .truth-table td, .st-viz .stage .truth-table th { padding: 10px; font-size: 1.05rem; }
+
+/* Controls sitting in the tinted reading column. */
+.st-interactive .viz { gap: 12px; }
+.st-interactive .viz-readout { background: rgba(255, 255, 255, 0.7); }
+
+/* cardinality: Venn with live region counts */
+.card-venn { width: 100%; }
+.card-ring { fill: hsl(var(--uh) 60% 92% / 0.35); stroke: hsl(var(--uh) 30% 45%); stroke-width: 2; transition: stroke-width 0.25s, fill 0.25s; }
+.card-ring.is-term { stroke: var(--accent, hsl(var(--uh) 60% 42%)); stroke-width: 4; fill: hsl(var(--uh) 70% 85% / 0.45); }
+.card-count circle { fill: #fff; stroke: hsl(var(--uh) 25% 60%); stroke-width: 1.5; transition: fill 0.25s; }
+.card-count text { text-anchor: middle; font-size: 16px; font-weight: 600; fill: var(--ink); font-family: var(--mono); }
+.card-count.is-term circle { fill: var(--accent, hsl(var(--uh) 60% 42%)); stroke: none; }
+.card-count.is-term text { fill: #fff; }
+.ps { display: grid; gap: 8px; }

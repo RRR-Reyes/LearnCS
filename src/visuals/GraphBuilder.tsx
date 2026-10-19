@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { split, Stage } from "./Stage";
 
 type Edge = [number, number];
 
@@ -46,7 +47,7 @@ function havelHakimi(seq: number[]) {
  * Click empty space to add a vertex; click two vertices to add or remove
  * the edge between them. Degree sequence and adjacency matrix follow along.
  */
-export default function GraphBuilder() {
+function GraphBuilder() {
   const [nodes, setNodes] = useState(START.nodes);
   const [edges, setEdges] = useState<Edge[]>(START.edges);
   const [sel, setSel] = useState<number | null>(null);
@@ -88,7 +89,12 @@ export default function GraphBuilder() {
         <button className="chip" onClick={() => setEdges([])}>Clear edges</button>
         <button className="chip" onClick={() => { setNodes(START.nodes); setEdges(START.edges); setSel(null); }}>Reset</button>
       </div>
+      <div className="seg" role="tablist">
+        <button role="tab" aria-selected={view === "matrix"} className={view === "matrix" ? "is-on" : ""} onClick={() => setView("matrix")}>Adjacency matrix</button>
+        <button role="tab" aria-selected={view === "list"} className={view === "list" ? "is-on" : ""} onClick={() => setView("list")}>Adjacency list</button>
+      </div>
 
+      <Stage>
       <svg viewBox={`0 0 ${W} ${H}`} className="graph-svg" onClick={addNode} role="img" aria-label="Editable graph">
         {edges.map(([a, b]) => (
           <line key={key(a, b)} className="g-edge" x1={nodes[a].x} y1={nodes[a].y} x2={nodes[b].x} y2={nodes[b].y} />
@@ -109,10 +115,6 @@ export default function GraphBuilder() {
         ))}
       </svg>
 
-      <div className="seg" role="tablist">
-        <button role="tab" aria-selected={view === "matrix"} className={view === "matrix" ? "is-on" : ""} onClick={() => setView("matrix")}>Adjacency matrix</button>
-        <button role="tab" aria-selected={view === "list"} className={view === "list" ? "is-on" : ""} onClick={() => setView("list")}>Adjacency list</button>
-      </div>
       <div className="graph-info">
         {view === "list" ? (
           <ul className="adj-list mono">
@@ -148,6 +150,7 @@ export default function GraphBuilder() {
           <p>Sum of degrees = <strong>{degree.reduce((s, d) => s + d, 0)}</strong> = 2 × edges</p>
         </div>
       </div>
+      </Stage>
 
       <div className="hh">
         <label className="hh-label">
@@ -162,3 +165,5 @@ export default function GraphBuilder() {
     </div>
   );
 }
+
+export default split(GraphBuilder);

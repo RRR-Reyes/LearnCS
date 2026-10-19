@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { split, Stage } from "./Stage";
 
 /** Same alphabet as the question bank: A=0 … Z=25, "_" = 26. */
 const toNum = (ch: string) => (ch === "_" ? 26 : ch.charCodeAt(0) - 65);
@@ -18,7 +19,7 @@ const N_FOR: Record<number, number[]> = { 1: [29, 31, 37], 2: [757, 761, 769], 3
  * `size` letters is read as one base-27 number p, and c = p·K mod N.
  * Decrypting multiplies by K⁻¹ mod N and reads the base-27 digits back.
  */
-export default function PacketCipher() {
+function PacketCipher() {
   const [msg, setMsg] = useState("MATH");
   const [size, setSize] = useState(2);
   const [N, setN] = useState(N_FOR[2][0]);
@@ -70,6 +71,7 @@ export default function PacketCipher() {
         </div>
       </div>
 
+      <Stage>
       <div className="packets">
         {packets.map((pk, i) => (
           <button key={i} className={`packet ${show === i ? "is-open" : ""}`} onClick={() => setShow(show === i ? null : i)} style={{ animationDelay: `${i * 80}ms` }}>
@@ -95,6 +97,9 @@ export default function PacketCipher() {
         {kOk ? `K⁻¹ = ${kInv} (mod ${N}), since ${K}·${kInv} ≡ 1` : `gcd(${K}, ${N}) ≠ 1, so K has no inverse: messages can't be decrypted.`}
         {clean.length % size !== 0 ? ` · padded with "_" to fill the last packet` : ""}
       </p>
+      </Stage>
     </div>
   );
 }
+
+export default split(PacketCipher);

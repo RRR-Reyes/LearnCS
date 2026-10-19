@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { split, Stage } from "./Stage";
 
 /** Mathematical mod (Python's %): always lands in 0..n-1, even for negative a. */
 const mod = (a: number, n: number) => ((a % n) + n) % n;
@@ -8,7 +9,7 @@ const mod = (a: number, n: number) => ((a % n) + n) % n;
  * walk |a| steps (backwards for negative a) to land on a mod n. The number
  * line below shows the floor-division picture: a = n·q + r.
  */
-export default function ModClock() {
+function ModClock() {
   const [n, setN] = useState(7);
   const [a, setA] = useState(17);
   const [pos, setPos] = useState(0);
@@ -45,6 +46,7 @@ export default function ModClock() {
         <label>a = <strong>{a}</strong><input type="range" min={-30} max={30} value={a} onChange={(e) => setA(+e.target.value)} /></label>
       </div>
 
+      <Stage>
       <svg viewBox="-120 -120 240 240" className="mod-svg" role="img" aria-label={`${a} mod ${n} equals ${r}`}>
         <circle r={R + 14} className="mod-face" />
         {Array.from({ length: n }, (_, k) => (
@@ -73,6 +75,9 @@ export default function ModClock() {
       <p className="viz-readout mono" aria-live="polite">
         {a} // {n} = <strong>{q}</strong> &nbsp;and&nbsp; {a} % {n} = <strong>{r}</strong> &nbsp;because&nbsp; {a} = {n}·({q}) + {r}
       </p>
+      </Stage>
     </div>
   );
 }
+
+export default split(ModClock);

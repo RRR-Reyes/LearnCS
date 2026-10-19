@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { split, Stage } from "./Stage";
 
 type F = (p: boolean, q: boolean) => boolean;
 type Pair = { name: string; left: [string, F]; right: [string, F] };
@@ -47,6 +48,14 @@ function Equivalence() {
           <button key={pr.name} className={`chip chip-sm ${pr === pair ? "is-on" : ""}`} onClick={() => setPair(pr)}>{pr.name}</button>
         ))}
       </div>
+      <div className="viz-row viz-chips">
+        <span className="chip-label">Classify</span>
+        {SINGLES.map((s) => (
+          <button key={s[0]} className={`chip chip-sm mono ${s === single ? "is-on" : ""}`} onClick={() => setSingle(s)}>{s[0]}</button>
+        ))}
+      </div>
+
+      <Stage>
       <table className="truth-table eq-table" key={pair.name}>
         <thead>
           <tr><th>P</th><th>Q</th><th className="mono">{pair.left[0]}</th><th className="mono">{pair.right[0]}</th></tr>
@@ -71,16 +80,12 @@ function Equivalence() {
       </div>
 
       <div className="eq-meter">
-        <div className="viz-row viz-chips">
-          {SINGLES.map((s) => (
-            <button key={s[0]} className={`chip chip-sm mono ${s === single ? "is-on" : ""}`} onClick={() => setSingle(s)}>{s[0]}</button>
-          ))}
-        </div>
         <div className="meter-track" aria-hidden>
           {ROWS.map(([p, q], i) => <span key={i} className={single[1](p, q) ? "is-on" : ""} />)}
         </div>
         <p className="viz-readout">{single[0]} is true in {singleCount} of 4 rows → <strong>{kind}</strong></p>
       </div>
+      </Stage>
     </>
   );
 }
@@ -109,6 +114,7 @@ function Quantifiers() {
         <button className={`chip ${q === "exists" ? "is-on" : ""}`} onClick={() => setQ("exists")}>∃ there exists</button>
         <button className={`chip ${neg ? "is-on" : ""}`} onClick={() => setNeg(!neg)}>¬ negate</button>
       </div>
+      <Stage>
       <div className="quant-grid" role="img" aria-label="Domain 1 to 12 with the predicate's truth for each">
         {DOMAIN.map((x, i) => (
           <span key={x} className={`quant-dot ${truths[i] ? "is-true" : "is-false"} ${i === decider ? "is-decider" : ""}`}>{x}</span>
@@ -123,12 +129,13 @@ function Quantifiers() {
           {neg ? ` Pushing ¬ inside flips the quantifier: ${pushed}.` : ""}
         </span>
       </div>
+      </Stage>
     </>
   );
 }
 
 /** Equivalence laws checked row by row, plus quantifiers over a visible domain. */
-export default function LogicLab() {
+function LogicLab() {
   const [tab, setTab] = useState<"eq" | "quant">("eq");
   return (
     <div className="viz viz-logic">
@@ -140,3 +147,5 @@ export default function LogicLab() {
     </div>
   );
 }
+
+export default split(LogicLab);

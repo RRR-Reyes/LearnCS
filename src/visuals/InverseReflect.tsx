@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { split, Stage } from "./Stage";
 
 type Fn = {
   label: string;
@@ -21,7 +22,7 @@ const s = (v: number) => W / 2 + (v / VIEW) * (W / 2);
 const t = (v: number) => W / 2 - (v / VIEW) * (W / 2);
 
 /** Plot f, then mirror it across y = x; the reflection is f⁻¹ when f is one-to-one. */
-export default function InverseReflect() {
+function InverseReflect() {
   const [fn, setFn] = useState(FNS[0]);
   const [mirrored, setMirrored] = useState(false);
 
@@ -43,6 +44,10 @@ export default function InverseReflect() {
       <div className="viz-row viz-chips">
         {FNS.map((f) => <button key={f.label} className={`chip chip-sm mono ${f === fn ? "is-on" : ""}`} onClick={() => { setFn(f); setMirrored(false); }}>{f.label}</button>)}
       </div>
+      <div className="sq-actions">
+        <button className="btn" onClick={() => setMirrored(!mirrored)}>{mirrored ? "Hide reflection" : "Reflect across y = x"}</button>
+      </div>
+      <Stage>
       <svg viewBox={`0 0 ${W} ${W}`} className="inv-svg" role="img" aria-label={`${fn.label} and its reflection across y = x`}>
         <clipPath id="inv-clip"><rect width={W} height={W} /></clipPath>
         <g clipPath="url(#inv-clip)">
@@ -54,9 +59,6 @@ export default function InverseReflect() {
           <path d={path} className={`inv-g ${mirrored ? "is-on" : ""} ${fn.inv ? "" : "is-bad"}`} style={{ transformOrigin: `${W / 2}px ${W / 2}px` }} />
         </g>
       </svg>
-      <div className="sq-actions">
-        <button className="btn" onClick={() => setMirrored(!mirrored)}>{mirrored ? "Hide reflection" : "Reflect across y = x"}</button>
-      </div>
       <div className="inv-steps" aria-live="polite">
         {fn.inv ? (
           <>
@@ -68,6 +70,9 @@ export default function InverseReflect() {
           <p>{fn.why}</p>
         )}
       </div>
+      </Stage>
     </div>
   );
 }
+
+export default split(InverseReflect);

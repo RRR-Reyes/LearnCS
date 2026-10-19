@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { split, Stage } from "./Stage";
 
 type Stat = { key: string; label: string; fn: (x: number, y: number) => number };
 
@@ -26,7 +27,7 @@ function exact(fa: number[], fb: number[], fn: Stat["fn"]) {
  * Relabel the faces of two dice, pick a statistic, and compare its exact
  * distribution with rolls. The band marks mean ± one standard deviation.
  */
-export default function DiceStats() {
+function DiceStats() {
   const [stat, setStat] = useState(STATS[0]);
   const [fa, setFa] = useState(DEFAULT);
   const [fb, setFb] = useState(DEFAULT);
@@ -83,6 +84,7 @@ export default function DiceStats() {
         {last && <span className="mips-count mono">{fa[last[0]]} and {fb[last[1]]} → {stat.fn(fa[last[0]], fb[last[1]])}</span>}
       </div>
 
+      <Stage>
       <div className="hist-wrap">
         <span className="sd-band" style={{ left: `${pct(theory.mean - theory.sd)}%`, width: `${pct(theory.mean + theory.sd) - pct(theory.mean - theory.sd)}%` }} aria-hidden />
         <span className="sd-mean" style={{ left: `${pct(theory.mean)}%` }} aria-hidden />
@@ -111,6 +113,9 @@ export default function DiceStats() {
         E[X] = {theory.mean.toFixed(3)} · Var = {theory.variance.toFixed(3)} · σ = <strong>{theory.sd.toFixed(3)}</strong>
         {rolls.length ? ` · sample mean ${sMean.toFixed(3)}` : ""}
       </p>
+      </Stage>
     </div>
   );
 }
+
+export default split(DiceStats);

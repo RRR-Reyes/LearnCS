@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { split, Stage } from "./Stage";
 
 type Kind = "arith" | "geo" | "rec";
 
@@ -7,7 +8,7 @@ type Kind = "arith" | "geo" | "rec";
  * highlighted bars are the partial sum Sₙ. For arithmetic series, the
  * pairing view flips a copy on top so each column sums to a₁ + aₙ.
  */
-export default function SequenceStairs() {
+function SequenceStairs() {
   const [kind, setKind] = useState<Kind>("arith");
   const [a1, setA1] = useState(2);
   const [d, setD] = useState(3);
@@ -59,6 +60,7 @@ export default function SequenceStairs() {
         <label>n <strong>{n}</strong><input type="range" min={2} max={12} value={n} onChange={(e) => setN(+e.target.value)} /></label>
       </div>
 
+      <Stage>
       <div className="stairs" role="img" aria-label={`First ${n} terms`}>
         {terms.map((t, i) => {
           const mirror = terms[n - 1 - i];
@@ -79,6 +81,9 @@ export default function SequenceStairs() {
         {showPair && <><br />each column = a₁ + aₙ = {terms[0] + terms[n - 1]}, and there are n of them counted twice: Sₙ = {n}·{terms[0] + terms[n - 1]} / 2 = {sum}</>}
         {!showPair && kind !== "rec" && <><br />S{n} = {sum}</>}
       </p>
+      </Stage>
     </div>
   );
 }
+
+export default split(SequenceStairs);

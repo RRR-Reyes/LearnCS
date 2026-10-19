@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { split, Stage } from "./Stage";
 
 /**
  * Region codes: bit 4 = in A, 2 = in B, 1 = in C (0 = outside all three).
@@ -81,7 +82,7 @@ const logic = (c: number) => ["A", "B", "C"].map((L, k) => (has(c, 4 >> k) ? L :
 const join = (parts: string[], sep: string) => (parts.length > 1 ? parts.map((p) => `(${p})`) : parts).join(sep);
 
 /** Click regions of a three-set Venn diagram to see every way to write the selection. */
-export default function Venn3() {
+function Venn3() {
   const names = useMemo(buildNames, []);
   const [sel, setSel] = useState<number[]>([7]);
   const isSel = (c: number) => sel.includes(c);
@@ -113,7 +114,13 @@ export default function Venn3() {
         ))}
         <button className="chip chip-sm venn-clear" onClick={() => setSel([])}>Clear</button>
       </div>
+      <div className="viz-row viz-chips" role="group" aria-label="Regions">
+        {ORDER.map((c) => (
+          <button key={c} className={`chip chip-sm ${isSel(c) ? "is-on" : ""}`} aria-pressed={isSel(c)} onClick={() => toggle(c)}>{LABEL[c]}</button>
+        ))}
+      </div>
 
+      <Stage>
       <svg viewBox="0 0 500 410" className="venn-svg" onClick={onClick} role="img" aria-label="Three-set Venn diagram; click regions to select them">
         <defs>
           {(Object.keys(CIRCLES) as (keyof typeof CIRCLES)[]).map((k) => (
@@ -155,12 +162,6 @@ export default function Venn3() {
         )}
       </svg>
 
-      <div className="viz-row viz-chips" role="group" aria-label="Regions">
-        {ORDER.map((c) => (
-          <button key={c} className={`chip chip-sm ${isSel(c) ? "is-on" : ""}`} aria-pressed={isSel(c)} onClick={() => toggle(c)}>{LABEL[c]}</button>
-        ))}
-      </div>
-
       <div className="venn-out" aria-live="polite">
         {chosen.length === 0 ? (
           <p>Click any region of the diagram, or a region chip, to see every way to write it.</p>
@@ -184,6 +185,9 @@ export default function Venn3() {
           </>
         )}
       </div>
+      </Stage>
     </div>
   );
 }
+
+export default split(Venn3);
