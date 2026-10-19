@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "learncs",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": ["/c", "set BROWSER=none&& set PORT=3005&& npm start"],
+      "port": 3005
+    }
+  ]
+}

@@ -1,6 +1,8 @@
 import type { Course } from "./types";
 import BitFlipper from "../visuals/BitFlipper";
 import HammingCode from "../visuals/HammingCode";
+import ColorTool from "../visuals/ColorTool";
+import FloatExplorer from "../visuals/FloatExplorer";
 import BitwiseOps from "../visuals/BitwiseOps";
 import MipsStepper from "../visuals/MipsStepper";
 import ArrayAddress from "../visuals/ArrayAddress";
@@ -51,32 +53,59 @@ export const system: Course = {
       label: "Module 2",
       title: "Data Representation",
       summary: "Encoding text, colors and floats, and catching transmission errors.",
-      Visual: HammingCode,
-      visualHint: "Set the four data bits, then click any bit of the received word to corrupt it. Hover a parity check to see which positions it covers.",
-      lessons: [
+      sections: [
         {
-          heading: "Encodings",
-          body: "ASCII maps characters to 7-bit codes: 'A' is 65 and 'a' is 97, exactly 32 apart. RGB colors pack three 0–255 channels into six hex digits, so #FF8000 is full red, half green, no blue.",
-          checkpoint: {
-            prompt: "Which character is ASCII 0x42?",
-            options: ["A", "B", "b", "*"],
-            answer: 1,
-            explanation: "0x42 = 66, one after 'A' (65).",
-          },
+          id: "encodings",
+          title: "Encodings",
+          body: [
+            "ASCII maps characters to 7-bit codes: 'A' is 65 and 'a' is 97, exactly 32 apart. RGB colors pack three 0–255 channels into six hex digits, so #FF8000 is full red, half green, no blue.",
+            "Each channel is one byte, so eight bits, and a byte splits into two nibbles of four bits. Every nibble is exactly one hex digit.",
+          ],
+          Visual: ColorTool,
+          visualHint: "Click or drag on the wheel to pick a color, then read each channel as a decimal, as bits, and as two hex digits.",
+          checkpoints: [
+            {
+              prompt: "Which character is ASCII 0x42?",
+              options: ["A", "B", "b", "*"],
+              answer: 1,
+              explanation: "0x42 = 66, one after 'A' (65).",
+            },
+          ],
         },
         {
-          heading: "Error detection",
-          body: "Hamming(7,4) adds parity bits at positions 1, 2 and 4. Each covers the positions whose index has that bit set. Reading the failed checks as a binary number gives the exact position of a single flipped bit.",
-          checkpoint: {
-            prompt: "Checks p1 and p4 fail and p2 passes. Which position is wrong?",
-            options: ["3", "5", "6", "7"],
-            answer: 1,
-            explanation: "Failed checks add up: 1 + 4 = 5. Try corrupting position 5 in the panel.",
-          },
+          id: "error-detection",
+          title: "Error detection",
+          body: [
+            "Hamming(7,4) adds parity bits at positions 1, 2 and 4. Each covers the positions whose index has that bit set. Reading the failed checks as a binary number gives the exact position of a single flipped bit.",
+          ],
+          Visual: HammingCode,
+          visualHint: "Set the four data bits, then click any bit of the received word to corrupt it. Hover a parity check to see which positions it covers.",
+          checkpoints: [
+            {
+              prompt: "Checks p1 and p4 fail and p2 passes. Which position is wrong?",
+              options: ["3", "5", "6", "7"],
+              answer: 1,
+              explanation: "Failed checks add up: 1 + 4 = 5. Try corrupting position 5 in the panel.",
+            },
+          ],
         },
         {
-          heading: "Information and floats",
-          body: "Picking one of N equally likely outcomes takes log₂ N bits, the minimum number of yes/no questions. IEEE 754 reserves an all-ones exponent for ∞ and NaN, and an all-zeros exponent for zero and denormals.",
+          id: "information-floats",
+          title: "Information and floats",
+          body: [
+            "Picking one of N equally likely outcomes takes log₂ N bits, the minimum number of yes/no questions.",
+            "A float stores a number as a sign, an exponent and a mantissa: (−1)^sign × 1.mantissa × 2^(exponent − bias). IEEE 754 reserves an all-ones exponent for ∞ and NaN, and an all-zeros exponent for zero and denormals.",
+          ],
+          Visual: FloatExplorer,
+          visualHint: "Flip any bit, or load a preset such as 0.1, ∞ or NaN, and watch the value rebuild itself.",
+          checkpoints: [
+            {
+              prompt: "A float has an all-ones exponent and a mantissa of all zeros. What is it?",
+              options: ["NaN", "Infinity", "Zero", "1.0"],
+              answer: 1,
+              explanation: "All-ones exponent means ∞ or NaN. A zero mantissa makes it ∞; a nonzero mantissa makes it NaN.",
+            },
+          ],
         },
       ],
     },

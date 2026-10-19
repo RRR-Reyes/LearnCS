@@ -1,31 +1,27 @@
 import { useState } from "react";
+import type { CSSProperties } from "react";
+import { PARITY, POSITIONS, encode, labelOf, membersOf, syndromeOf } from "./hammingLogic";
 
-/** Positions 1..7; parity bits sit at the powers of two (1, 2, 4). */
-const PARITY = [1, 2, 4];
-const DATA_POS = [3, 5, 6, 7];
+/** Slight per-tile shade shifts so the wood doesn't look stamped out. */
+const SHADE = [-3, 2, 5, -1];
+const shade = (i: number) => ({ "--wh": SHADE[i % 4], "--wl": `${[2, -2, 1, -3][i % 4]}%` } as CSSProperties);
 
-/** Even-parity Hamming(7,4): each parity bit covers positions whose index has that bit set. */
-function encode(data: number[]) {
-  const word = Array(8).fill(0);
-  DATA_POS.forEach((p, i) => (word[p] = data[i]));
-  for (const p of PARITY) {
-    let x = 0;
-    for (let i = 1; i <= 7; i++) if (i & p && i !== p) x ^= word[i];
-    word[p] = x;
-  }
-  return word;
+/** A two-sided wood tile: oak shows 0, walnut shows 1. */
+function Tile({ on, i, className = "", ...rest }: { on: boolean; i: number; className?: string } & React.ButtonHTMLAttributes<HTMLButtonElement>) {
+  return (
+    <button className={`hm-tile ${on ? "is-on" : ""} ${className}`} style={shade(i)} aria-pressed={on} {...rest}>
+      <span className="flip-inner">
+        <span className="flip-face flip-front">0</span>
+        <span className="flip-face flip-back">1</span>
+      </span>
+    </button>
+  );
 }
-
-const syndromeOf = (word: number[]) =>
-  PARITY.reduce((s, p) => {
-    let x = 0;
-    for (let i = 1; i <= 7; i++) if (i & p) x ^= word[i];
-    return s + (x ? p : 0);
-  }, 0);
 
 /**
  * Set the four data bits, then flip any one bit of the sent word to
- * simulate noise. The receiver's parity checks point at the bad bit.
+ * simulate noise. Each parity check is a brass pipe through the bits it
+ * covers; the checks that read odd spell out the bad position in binary.
  */
 export default function HammingCode() {
   const [data, setData] = useState([1, 0, 1, 1]);
@@ -35,72 +31,95 @@ export default function HammingCode() {
   const sent = encode(data);
   const received = sent.map((b, i) => (i === noise ? b ^ 1 : b));
   const syndrome = syndromeOf(received);
+  const isOdd = (p: number) => membersOf(p).reduce((x, i) => x ^ received[i], 0) === 1;
 
   return (
     <div className="viz viz-hamming">
-      <div className="ham-data">
+      <div className="hm-data">
         <span className="ham-caption">Data bits</span>
         {data.map((b, i) => (
-          <button
+          <Tile
             key={i}
-            className={`bit ${b ? "is-on" : ""}`}
-            aria-pressed={!!b}
+            on={!!b}
+            i={i}
+            className="is-sm"
+            aria-label={`data bit ${i + 1}`}
             onClick={() => {
               const next = [...data];
               next[i] ^= 1;
               setData(next);
               setNoise(null);
             }}
-          >
-            <strong>{b}</strong>
-            <small>d{i + 1}</small>
-          </button>
+          />
         ))}
+        <span className="hm-hint">→ the sender adds p1, p2, p4</span>
       </div>
 
       <span className="ham-caption">Received word — click a bit to corrupt it</span>
-      <div className="ham-word">
-        {Array.from({ length: 7 }, (_, k) => k + 1).map((pos) => {
-          const isParity = PARITY.includes(pos);
+      <div className="hm-grid hm-word">
+        {POSITIONS.map((pos, k) => {
+          const parity = PARITY.includes(pos);
           const covered = hover !== null && (pos & hover) !== 0;
           return (
-            <button
-              key={pos}
-              className={`ham-bit ${isParity ? "is-parity" : ""} ${received[pos] ? "is-on" : ""} ${
-                noise === pos ? "is-noisy" : ""
-              } ${covered ? "is-covered" : ""} ${syndrome === pos ? "is-found" : ""}`}
-              onClick={() => setNoise(noise === pos ? null : pos)}
-              aria-label={`position ${pos}${isParity ? ", parity" : ""}`}
-            >
-              <strong>{received[pos]}</strong>
-              <small>{isParity ? `p${pos}` : `d${DATA_POS.indexOf(pos) + 1}`}</small>
-              <em>{pos}</em>
-            </button>
-          );
-        })}
-      </div>
-
-      <div className="ham-checks">
-        {PARITY.map((p) => {
-          const members = Array.from({ length: 7 }, (_, k) => k + 1).filter((i) => i & p);
-          const ok = members.reduce((x, i) => x ^ received[i], 0) === 0;
-          return (
             <div
-              key={p}
-              className={`ham-check ${ok ? "is-ok" : "is-bad"}`}
-              onMouseEnter={() => setHover(p)}
-              onMouseLeave={() => setHover(null)}
+              key={pos}
+              className={`hm-cell ${parity ? "is-parity" : ""} ${covered ? "is-covered" : ""} ${noise === pos ? "is-noisy" : ""} ${
+                syndrome === pos ? "is-found" : ""
+              }`}
             >
-              <strong>p{p}</strong> checks {members.join(", ")} → {ok ? "even ✓" : "odd ✗"}
+              <Tile
+                on={received[pos] === 1}
+                i={k}
+                aria-label={`position ${pos}${parity ? ", parity" : ""}`}
+                onClick={() => setNoise(noise === pos ? null : pos)}
+              />
+              <span className="hm-label">{labelOf(pos)}</span>
+              <span className="hm-bin">{pos.toString(2).padStart(3, "0")}</span>
             </div>
           );
         })}
       </div>
 
-      <p className="viz-readout" aria-live="polite">
-        Syndrome = {syndrome.toString(2).padStart(3, "0")}₂ ={" "}
-        <strong>{syndrome === 0 ? "0 → no error" : `${syndrome} → flip position ${syndrome}`}</strong>
-      </p>
+      <div className="hm-checks">
+        {PARITY.map((p) => {
+          const ok = !isOdd(p);
+          const mem = membersOf(p);
+          return (
+            <div
+              key={p}
+              className={`hm-grid hm-check ${ok ? "is-ok" : "is-bad"}`}
+              onMouseEnter={() => setHover(p)}
+              onMouseLeave={() => setHover(null)}
+            >
+              <span className="hm-pipe" />
+              {POSITIONS.map((pos) => (
+                <span key={pos} style={{ gridColumn: pos }} className={`hm-dot ${mem.includes(pos) ? (received[pos] ? "is-on" : "is-off") : "is-gap"}`}>
+                  {mem.includes(pos) ? received[pos] : ""}
+                </span>
+              ))}
+              <span className="hm-status">
+                <strong>p{p}</strong> {ok ? "even ✓" : "odd ✗"}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="hm-synd" aria-live="polite">
+        <div className="hm-lamps">
+          {[...PARITY].reverse().map((p) => (
+            <span key={p} className={`hm-lamp ${isOdd(p) ? "is-odd" : ""}`}>
+              <b>{isOdd(p) ? 1 : 0}</b>
+              <i>p{p}</i>
+            </span>
+          ))}
+        </div>
+        <p className="viz-readout">
+          Syndrome = {syndrome.toString(2).padStart(3, "0")}₂ ={" "}
+          <strong>{syndrome === 0 ? "0 → no error" : `${syndrome} → flip position ${syndrome}`}</strong>
+        </p>
+      </div>
     </div>
   );
 }
+

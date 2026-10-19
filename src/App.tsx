@@ -5,6 +5,7 @@ import { useHashRoute } from "./useHashRoute";
 import Home from "./components/Home";
 import CoursePage from "./components/CoursePage";
 import ChapterPicker from "./components/ChapterPicker";
+import Lab from "./components/Lab";
 
 export default function App() {
   const { courseId, unitId } = useHashRoute();
@@ -19,6 +20,8 @@ export default function App() {
       document.getElementById(courseId)!.scrollIntoView({ behavior: "smooth" });
     }
   }, [courseId, course]);
+
+  if (courseId === "lab") return <Lab />;
 
   return (
     <>

@@ -42,21 +42,29 @@ export default function BitFlipper() {
         <button className="chip" onClick={() => setValue((-signed) & mask)}>Negate (invert + 1)</button>
       </div>
 
-      <div className="bits-row" role="group" aria-label="Bits, most significant first">
+      <div className="flip-board" role="group" aria-label="Bits, most significant first">
         {bits.map((b) => {
           const on = (v >> b) & 1;
           const isSign = b === width - 1;
           return (
-            <button
-              key={b}
-              className={`bit ${on ? "is-on" : ""} ${isSign ? "is-sign" : ""}`}
-              aria-pressed={!!on}
-              aria-label={`bit ${b}`}
-              onClick={() => flip(b)}
-            >
-              <strong>{on}</strong>
-              <small>{isSign ? `−2${sup(b)}` : `2${sup(b)}`}</small>
-            </button>
+            <div key={b} className="flip-col">
+              <button
+                className={`flip-card ${on ? "is-on" : ""}`}
+                aria-pressed={!!on}
+                aria-label={`bit ${b}`}
+                onClick={() => flip(b)}
+              >
+                <span className="flip-inner">
+                  <span className="flip-face flip-front">0</span>
+                  <span className="flip-face flip-back">1</span>
+                </span>
+              </button>
+              <span className="flip-peg" aria-hidden="true" />
+              <span className={`flip-power ${on ? "is-on" : ""}`}>
+                {isSign ? "−" : ""}2<sup>{b}</sup>
+              </span>
+              <span className="flip-weight">{isSign ? "−" : ""}{1 << b}</span>
+            </div>
           );
         })}
       </div>
@@ -80,5 +88,3 @@ export default function BitFlipper() {
   );
 }
 
-const SUPS = "⁰¹²³⁴⁵⁶⁷";
-const sup = (n: number) => SUPS[n];
