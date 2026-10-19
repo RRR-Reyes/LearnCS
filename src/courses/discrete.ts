@@ -75,11 +75,13 @@ export const discrete: Course = {
           title: "Truth Tables",
           thumb: { icon: Table, color: "#E8B400" },
           Visual: TruthTable,
-          visualHint: "Choose an expression, then flip P, Q and R or click a row. The bulb shows the result for the current inputs.",
+          visualHint: "Type any expression, or build it from the symbol keys, and the table builds itself. Click a row to follow it across.",
           body: [
-            "A truth table lists every combination of inputs and the output for each. With \\(n\\) variables there are \\(2^n\\) rows: 4 for P and Q, 8 once R joins.",
-            "NAND and NOR are the negations of AND and OR. XOR (⊕) is true when exactly one input is true, and ↔ is its opposite, true when the inputs match.",
-            "For a compound expression, work from the innermost operator outward, one column at a time.",
+            "A truth table lists every combination of true (T) and false (F) for the variables, and the value of the expression in each. With \\(n\\) variables there are \\(2^n\\) rows: 4 for P and Q, 8 once R joins, 16 with S.",
+            "Each connective has a simple rule. ¬P flips P. P ∧ Q (and) is true only when both are. P ∨ Q (or) is true when at least one is. P ⊕ Q (xor) is true when exactly one is. P ↔ Q (if and only if) is true when they match. NAND (↑) and NOR (↓) are just ¬(P ∧ Q) and ¬(P ∨ Q).",
+            "P → Q (implies) is the one that surprises people: it is false only when P is true and Q is false. If P is false, the promise was never tested, so P → Q counts as true.",
+            "To fill in a compound expression, work from the innermost operator outward, one column at a time. The table on the right does exactly that: each step column is one operator, and the last column is the answer.",
+            "Without parentheses, ¬ applies first, then ∧, ∨, ⊕, → and finally ↔. So ¬P ∨ Q means (¬P) ∨ Q. When in doubt, add parentheses.",
           ],
           checkpoints: [
             {
@@ -101,12 +103,15 @@ export const discrete: Course = {
           title: "Logic Concepts",
           thumb: { tex: "\\color{#D90677}{\\neg}(p \\mathbin{\\color{#009CDE}{\\land}} q)" },
           Visual: LogicLab,
-          visualHint: "Pick a law to compare its two sides row by row. Switch to Quantifiers to test ∀ and ∃ over a visible domain.",
+          visualHint: "Load a law or type your own A and B, then change one with the buttons and watch whether the columns still match. In Quantifiers, write your own predicate and pick the domain.",
           body: [
-            "Two expressions are equivalent (≡) when they agree in every row. De Morgan's laws move a negation inside by flipping the connective, and absorption removes redundant terms:",
+            "Two expressions are equivalent (≡) when they have the same value in every row of their truth table. To show they are not, one row where they disagree is enough.",
+            "Laws are equivalences you can use to rewrite an expression without changing its table. De Morgan's laws move a ¬ inside by flipping the connective; absorption removes a redundant term:",
             "\\[\\neg(P \\land Q) \\equiv \\neg P \\lor \\neg Q \\qquad P \\lor (P \\land Q) \\equiv P\\]",
-            "A tautology is true in every row, a contradiction in none. The dual of a statement swaps ∧ with ∨ and T with F; dual laws hold together.",
-            "Negating a quantifier flips it: \\(\\neg\\forall x\\, P(x) \\equiv \\exists x\\, \\neg P(x)\\). To disprove a 'for all', one counterexample is enough. To prove a 'there exists', one witness is enough.",
+            "Try it on the right: push a ¬ inward one step at a time, or rewrite → as ¬P ∨ Q, and A stays equivalent to what it was. Negating does change the table (every row flips), and so does taking the converse: P → Q is not equivalent to Q → P, but it is equivalent to its contrapositive ¬Q → ¬P.",
+            "A tautology is true in every row, a contradiction in none, and a contingency in some. The dual of an expression swaps ∧ with ∨ and T with F; if two expressions are equivalent, so are their duals.",
+            "A quantifier says how many elements of a domain must satisfy a predicate: ∀x (for all) needs every x, ∃x (there exists) needs at least one. To disprove a 'for all', one counterexample is enough. To prove a 'there exists', one witness is enough.",
+            "Negating a quantifier flips it: \\(\\neg\\forall x\\, P(x) \\equiv \\exists x\\, \\neg P(x)\\). With two variables the order matters: ∀x ∃y (x + y = 0) lets y depend on x, while ∃y ∀x (x + y = 0) needs one y that works for every x.",
           ],
           checkpoints: [
             {

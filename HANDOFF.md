@@ -1,6 +1,6 @@
 # Handoff: LearnCS (Seeing Theory–style visual CS chapters)
 
-_Last updated: 2026-10-18. Written for the next Claude session picking this up._
+_Last updated: 2026-10-18 (evening). Written for the next Claude session picking this up._
 
 ## The goal (in the owner's words, summarized)
 
@@ -19,126 +19,177 @@ layout in `css/chapter-style.css`:
 - Copy the **design and mechanics**, not Seeing Theory's text.
 
 Owner feedback so far:
-- "I like how it is right now, I wanna pivot into something more visual rather than Q&A."
-- They dislike rounded, bubbly fonts and pills. They want **sharp** corners and the
-  Assistant font (Seeing Theory's), including inside visuals and the check cards.
-- They want LaTeX for math and open-source clipart for the tile thumbnails.
-- They chose "visual-only + quick checks": inline multiple-choice checks stay, but there are
-  no question banks, review bell or practice drawer.
+- Visual-first, with "quick checks" (inline multiple choice) but no question banks, review bell or practice drawer.
+- **Sharp** corners and the Assistant font. They dislike rounded, bubbly fonts and pills.
+- LaTeX for math, open-source clipart for tile thumbnails.
+- Visuals should feel like **physical toys and instruments**, not rows of buttons. The house
+  style is now **wood**: oak (0) and walnut (1) flip tiles with white digits, a cream "shelf"
+  board with a dark wood lip, brass pipes, pegs and borders. They want **colors, not textures**:
+  no wood grain and no line across the middle of a tile.
+- **One idea at a time:** a section's tool should only offer what the reading has introduced
+  so far, and by the end of a unit everything is available (see the staged tools below).
+- Each section's visual must **match its own reading**. They noticed when one didn't.
+- They liked Clawd (the Claude Code mascot) as a recolorable, fidgeting character in the color tool.
 
 ## Repo state
 
-- Folder: `C:\Users\User\IdeaProjects\LearnCS`, a fresh git repo on `main`, **no remote, nothing pushed**.
-- **One commit**: "Start LearnCS: Seeing Theory-style visual chapters".
-- **Uncommitted work (owner is reviewing it, so don't commit unprompted):** every Discrete
-  visual split (see below), the new Venn in `CardinalityLab.tsx`, `src/visuals/Stage.tsx`
-  tweak (`stage viz` class), and about 40 lines appended to `src/styles.css` plus the
-  `.g-node` fix. This `HANDOFF.md` is also untracked.
+- Folder: `C:\Users\User\IdeaProjects\LearnCS`, git repo on `main`, **no remote, nothing pushed**.
+- Commits, oldest first:
+  1. `4eaee12` Start LearnCS: Seeing Theory-style visual chapters
+  2. `458241a` Split Discrete visuals into reading controls and a fixed stage
+  3. `eb911f0` Make Module 2 visuals physical, add visual lab and float explorer
+  4. `7dcaf7d` Give every System Architecture section a visual that matches its reading
+  5. (this HANDOFF update, if committed)
 - Commit messages must end with the attribution line from the session's system reminder.
 - `node_modules` was copied from ReviewApp, so `npm start` works as is.
 - `package.json` name is `learncs` and `homepage` is `https://rrr-reyes.github.io/LearnCS`
-  (no GitHub repo exists yet).
-- **Don't touch ReviewApp.** It has the owner's uncommitted edits and a tracked `build/`
-  folder. The `.claude/launch.json` that starts LearnCS's dev server lives in ReviewApp's
-  untracked `.claude/` folder.
+  (no GitHub repo exists yet). Because of `homepage`, the dev server serves the app under
+  **`/LearnCS/`**, and the bare `/` is blank.
+- **Don't modify ReviewApp.** It has the owner's uncommitted edits and a tracked `build/` folder.
+  Reading it is fine: its question bank `src/modules/system/questions.ts` is the best record of
+  what the System Architecture course actually tests.
+- `.claude/launch.json` in this repo starts the dev server (`learncs`, port 3005).
+- `notes/system-architecture-audit.md`: section-by-section audit of System Architecture against
+  its visuals and the course bank, with a status block. Everything in it is done except an
+  optional Luhn checksum section.
 
 ## Architecture
 
 - `src/courses/`
   - `types.ts`: `Course`, `Unit`, `Section`, `Lesson`, `Checkpoint`, `Thumb`.
   - `index.ts`: `COURSES` (Discrete, Data Structures, Systems), `unitHue`, and `sectionsOf(unit)`,
-    which turns old-style `lessons` units into one section per lesson.
-  - `discrete.ts`: **6 units, 18 sections**: full scrolling-chapter shape. Each section has
-    `title`, `thumb`, `body: string[]`, `checkpoints`, `Visual`, `visualHint`.
-  - `data.ts` and `system.ts`: still the older shape (`lessons` plus **one whole-unit
-    `Visual`**, which is not split). The owner has not asked to convert these yet.
+    which turns old-style `lessons` units into one section per lesson that shares the unit's visual.
+  - `discrete.ts`: 6 units, 18 sections, full section shape with thumbnails and split visuals.
+  - `system.ts`: **5 modules, 20 sections, full section shape with one visual per section**
+    (no thumbnails yet). See the table below.
+  - `data.ts`: still the older shape (`lessons` plus one whole-unit `Visual`). It has not been
+    audited or converted.
 - `src/components/CoursePage.tsx`: the chapter. Fixed header with progress bar, `.st-left`
-  reading column, `.st-right` fixed stage column, intro tiles with thumbnails, previous/next footer.
-  At 960px or narrower, visuals render inline under each section and the right column is not rendered.
-- `src/useActiveSection.ts`: the active section is the last one whose top crossed 45% of the
-  viewport. It also returns reading progress and `fade` (the intro tint clears over the first
-  45% of a screen of scroll). It measures synchronously on scroll, not with rAF.
-- `src/visuals/Stage.tsx` (**the key mechanism**):
-  - `<Stage>` portals its children into the active section's slot in the right column
-    (via `StageTarget` context), or renders in place on narrow screens.
-  - `split(Component)` marks a visual as split, so `CoursePage` renders it **inline in the
-    reading** and lets it portal its `<Stage>` part to the right.
-  - Convention: **controls** (chips, sliders, inputs, step buttons) stay outside `<Stage>`;
-    **displays** (SVG, tables, readouts) go inside it.
-  - A non-split visual (the Data Structures and Systems ones) is drawn whole on the right.
-- `src/components/MathText.tsx`: KaTeX (MIT). `\( ... \)` is inline math, and a paragraph
-  that is only `\[ ... \]` is a centered formula (handled by `Para` in `CoursePage`). Plain
-  `$` is left alone because the text uses it for money. In `.ts` files write `\\(` and `\\[`.
-- `Thumb` (in `types.ts`): either `{ tex }` (KaTeX) or `{ icon, color }` (a Phosphor duotone
-  icon, MIT). Discrete sections have thumbnails; Data Structures and Systems do not yet.
-- `src/components/CheckpointCard.tsx`: plain white card, 3px corners, square letter boxes, KaTeX in prompts.
-- Styling: `src/styles.css` (one file). The Seeing Theory chapter styles are under
-  `/* Seeing Theory–style chapter */`, `/* chapter: sharp type and controls */`, and
-  `/* split visuals: the stage on the right */`. Inside `.st`, `--font` is Assistant and `--radius` is 3px.
-- Fonts via `@fontsource` (Assistant 300/400/600/700, Nunito for the home page); KaTeX CSS
-  is imported in `src/index.tsx`. Routing is hash-based (`#/discrete/sets`) in `useHashRoute.ts`.
+  reading column, `.st-right` fixed stage column, intro tiles, previous/next footer. At 960px or
+  narrower, visuals render inline under each section.
+- `src/components/Lab.tsx` (**#/lab**): a test bench listing every visual from every course once
+  (deduplicated by component), with a course filter and a name search. Routed in `App.tsx`
+  (`courseId === "lab"`). Open http://localhost:3005/LearnCS/#/lab. Visuals render in place there,
+  so split visuals show their stage under their controls.
+- `src/useActiveSection.ts`: the active section is the last one whose top crossed 45% of the viewport.
+- `src/visuals/Stage.tsx`: `<Stage>` portals a split visual's display into the right column;
+  `split(Component)` marks it. The convention is that controls stay outside `<Stage>` and
+  displays go inside. The System Architecture visuals are **not split**: each is drawn whole on the right.
+- **Per-section variants of one tool** are made with tiny wrapper components, because
+  `Section.Visual` takes no props. For example `bitwiseStage(ops, fresh)` in `BitwiseOps.tsx`,
+  `BitsPositional`/`BitsSigned`/`BitsExtend` in `BitFlipper.tsx`, `CallStepper` in
+  `MipsStepper.tsx`, `ArrayToMips` in `ArrayAddress.tsx`. Define them at module level (stable
+  identity) so they don't remount.
+- `src/components/MathText.tsx`: KaTeX. `\( … \)` inline, a paragraph that is only `\[ … \]`
+  is a display formula. In `.ts` files write `\\(`.
+- Styling: one file, `src/styles.css`. New blocks are appended at the end with a comment header
+  per visual (`/* float builder */`, `/* hi/lo machine */`, …).
 
-### Split status
+### System Architecture sections and visuals
 
-- **Split (18):** ExprTree, TruthTable, LogicLab, Venn3, CardinalityLab, SetRelations,
-  CartesianGrid, FunctionClassify (+FunctionMap), CompositionMachine, InverseReflect,
-  WellDefined, ModClock, PacketCipher, ExpectedDie, RngStepper, DiceStats, SequenceStairs, GraphBuilder.
-- **Not split:** the Data Structures and Systems visuals (GrowthRates, StackQueue, TreeTraversal,
-  HeapViz, HashTable, BSTViz, SortViz, DijkstraViz, BitFlipper, HammingCode, BitwiseOps,
-  MipsStepper, ArrayAddress, VennSets).
-- `CardinalityLab` got a **new live Venn diagram** on the stage (region counts and
-  the current inclusion–exclusion term highlighted) that wasn't in the original.
+| Module | Section | Visual (file) |
+|---|---|---|
+| 1 Number Systems | Positional notation | `BitsPositional` (BitFlipper): unsigned, nibble brackets → hex digit |
+| | Two's complement | `BitsSigned`: −2⁷ weight, Invert, Negate |
+| | Extension and overflow | `BitsExtend`: starts 4-bit, sign/zero-extend to 8, ±1 overflow |
+| 2 Data Representation | Text: ASCII | `AsciiTool`: type a word, flip a char's 7 bits, case bit (32) |
+| | Color: RGB | `ColorTool` + `Clawd`: color wheel, channels as bits and hex |
+| | Error detection | `HammingCode` (+ `hammingLogic.ts`): wood tiles, brass check pipes, syndrome lamps |
+| | Information | `InfoGame`: halving yes/no questions, answers spell the number in binary |
+| | Special float values | `FloatExplorer`: flip bits → value, 16/32-bit, ∞/NaN presets (decode) |
+| 3 MIPS Instructions | Logic: and, or → Shifting right (4 sections) | `bitwiseStage(...)`: chips grow per stage, new ones get an orange dot |
+| | Multiply and divide | `HiLoMachine`: mult/div fill HI and LO, mfhi/mflo lines |
+| | Branches | `BranchViz`: beq/bne, offset slider, PC + 4 + offset × 4 |
+| | Instruction encoding | `InstrDecoder`: hex word → R/I/J fields → assembly, random R-type |
+| | Floating-point fields | `FloatBuilder`: number → bits in five steps, 32/16-bit, rounding (encode) |
+| 4 MIPS Program Simulation | Tracing a program | `MipsStepper` (loop program) |
+| | Subroutines | `CallStepper`: jal, jr $ra, $ra saved on the stack |
+| 5 C to Assembly & Memory | Addressing arrays | `ArrayAddress` |
+| | From C to MIPS | `ArrayToMips`: generated MIPS with live register values |
+
+### Shared wood-style pieces (reuse these)
+
+- `.flip-inner` + `.flip-face.flip-front` (0, oak) / `.flip-back` (1, walnut): a two-sided tile
+  that rotates on `rotateX(180deg)` when its container has `.is-on`. Containers: `.flip-card`
+  (BitFlipper, large), `.hm-tile` (Hamming), `.fx-tile` (floats), `.hl-tile` (small; add
+  `.is-btn` when it is a button).
+- Per-tile shade variation: inline `--wh` (hue shift) and `--wl` (lightness shift) cycling over
+  `[-3, 2, 5, -1]` / `[2%, -2%, 1%, -3%]`.
+- Board: `linear-gradient(180deg, hsl(36 40% 90%), hsl(34 34% 84%))` with a
+  `border-bottom: 4–6px solid hsl(26 38% 36%)`. Brass: `hsl(40 70% 58%)`. Group colors used
+  for fields: sign/red `hsl(2 75% 52%)`, exponent/green `hsl(140 55% 38%)`, mantissa/blue `hsl(212 80% 50%)`.
+- `.fx-group.is-sign/.is-exp/.is-man` + `.fx-label` + `.fx-tiles`: labeled, color-topped bit groups.
+- `.chip.is-new`: orange dot for what a stage just introduced.
 
 ## Verification done (2026-10-18)
 
-- `npx tsc --noEmit -p . --skipLibCheck`: clean.
-- Production build into a temp folder: compiles with no warnings (~177 kB JS gzip).
-- Browser pane at 1440×860: all 18 Discrete sections show controls in the text and a
-  non-empty display on the right, with no overflow and zero console errors. Flipping P in
-  Truth Tables moves the highlighted row on the right. Switching units 5 times in a row is error-free.
-- 375px: no horizontal scroll, and displays render inline.
+- The dev server's type checker reports "No issues found" (read it with `preview_logs`).
+- Production build into a temp folder compiles with no warnings (~190 kB JS gzip).
+- In the browser pane, every System Architecture section renders a visual, with zero console
+  errors. Values were checked: float32 and half-float encodings against real bit patterns,
+  Hamming syndromes, HI/LO for mult/div and divide by zero, branch targets, decoder presets
+  (add/sll/lw/beq/jal), the subroutine trace ($ra = 0x40001c after `jal twice`, result 11),
+  array MIPS (A[1][2] → 0x2018), the ASCII case bit, the information game, and sign/zero extension.
+- At 375px: no horizontal scroll on the pages checked (Hamming, lab, color tool).
 
 ## Commands
 
 ```bash
 cd /c/Users/User/IdeaProjects/LearnCS
-PORT=3005 BROWSER=none npm start       # http://localhost:3005/LearnCS/#/discrete/sets
+PORT=3005 BROWSER=none npm start       # http://localhost:3005/LearnCS/#/system/numbers
 BUILD_PATH="$HOME/AppData/Local/Temp/learncs-build" npx react-scripts build
-npx tsc --noEmit -p . --skipLibCheck   # node_modules types are newer than TS 4.4, so skip lib checks
 ```
 
-In the desktop app, the `learncs` entry in ReviewApp's `.claude/launch.json` runs the dev
-server on port **3005** (port 3001 is taken by another process).
+**Type checking:** don't trust `npx tsc` here. TS 4.4 hits syntax errors in newer `node_modules/@types`
+files and never reports `src` errors, so it looks clean when it isn't. The dev server's checker
+(fork-ts-checker) is the real one: after an edit, its log ends with "No issues found" or lists
+`ERROR in src/...`. A production build also catches them. Known trap: spreading a `Set` or a
+`Map` iterator (`[...set]`) needs `downlevelIteration`, so use `Array.from(...)`.
+
+In the desktop app, `preview_start` with name `learncs` uses this repo's `.claude/launch.json`.
 
 ## Gotchas
 
-- **Hash changes don't always re-render in the hidden browser pane.** After changing the
-  hash, reload the page (or dispatch `new HashChangeEvent('hashchange')`), and after
-  `scrollTo` dispatch `new Event('scroll')`. The pane also pauses animations when hidden, so
-  screenshots can show rows or nodes mid-animation. Wait a second and look again.
-- **Shell quoting eats backslashes and apostrophes.** There is no Python on this machine.
-  For multi-line edits containing `\\(` LaTeX, use the Edit or Write tools or a `.js` file,
-  not `node -e '...'` or heredocs with backslashes.
-- A CSS `animation` that sets `transform` on an SVG `<g>` with a `transform=` attribute
-  overrides the attribute and moves everything to the origin. That bug hid the graph
-  vertices, and it's fixed by animating the circle instead.
-- The ESLint config doesn't load `react-hooks`, so an `// eslint-disable-next-line react-hooks/...`
-  comment fails the build. Restructure the code instead.
+- **Hash changes don't always re-render in the browser pane.** After changing the hash,
+  dispatch `new HashChangeEvent('hashchange')` (or reload), and after `scrollTo` dispatch
+  `new Event('scroll')`. Screenshots from the pane are sometimes stale or mid-animation, so take
+  another before trusting a visual bug. Read values from the DOM with `javascript_tool` when you can.
+- Viewport emulation at 1440 sometimes crops the screenshot. The pane's own size (~800px)
+  shows the narrow inline layout, where every section's visual is under its text.
+- **Shell quoting eats backslashes.** There is no Python. For edits that contain `\\(`, `\n` in
+  JSX strings or template literals, use the Edit/Write tools or a `.js` script file. A `"\\n"`
+  written through a heredoc script once became a raw newline inside a JSX string and broke the build.
+- A CSS `animation` that sets `transform` on an SVG `<g>` that has a `transform=` attribute
+  overrides it (this once sent everything to the origin). Animate a child element, or use
+  `style.transform` with `transform-box: fill-box` (as `Clawd.tsx` does).
+- The ESLint config doesn't load `react-hooks`, so `// eslint-disable-next-line react-hooks/...` fails the build.
 - `git` warns that LF will become CRLF. It's harmless.
-- Old CSS from ReviewApp's pre-redesign chapter (`.chapter`, `.lesson`, `.viz-panel`,
-  `.foot-link`, `.unit-chip`) is still in `styles.css` but unused.
+- Old CSS from ReviewApp (`.chapter`, `.lesson`, `.viz-panel`, `.foot-link`, `.unit-chip`) is still in `styles.css` but unused.
 
-## Suggested next steps (ask the owner what they want first)
+## Discrete Module 1 (Logic & Arithmetic), reworked 2026-10-18
 
-1. **Owner is reviewing the chapters.** Wait for feedback, then fix what feels off. Likely
-   areas: stage sizing and scale, how much sits in the text vs on the right, and whether the
-   Cardinality diagram and tile thumbnails look right.
-2. Commit the split work once the owner approves.
-3. Home page: it still has the dark dot-field hero and rounded Nunito tiles from ReviewApp.
-   It was never redesigned in Seeing Theory's style, and the owner said they like the chapter
-   layout, so confirm before changing it.
-4. Convert Data Structures and Systems to the full section shape (per-section
-   visuals, thumbnails, split visuals), but only if the owner asks.
-5. Create a GitHub repo, push, and set up GitHub Pages (the `homepage` field is already set).
-6. Delete the dead CSS, and consider back-porting the `.g-node` fix to ReviewApp (it's a 3-line
-   change there).
+The owner asked for Discrete to keep its **own look, not the wood style**, and for tools students can
+play with instead of fixed lists.
+- `src/visuals/logic/prop.ts`: propositional engine. It parses typed input (symbols or ASCII such as
+  `->`, `and`, `~`), evaluates, lists sub-expressions innermost first, and applies one law at a
+  time (`pushNot`, `onlyAndOrNot`, `dual`, `negate`). `show()` always parenthesizes mixed operators.
+- `src/visuals/logic/pred.ts`: a safe predicate parser in x and y for quantifiers (no eval).
+- `src/visuals/logic/ExprInput.tsx`: the symbol keypad and expression field (caret-aware insert, errors point at the position).
+- `TruthTable.tsx`: the student types any expression (up to 4 variables) and gets one column per step.
+- `LogicLab.tsx`: Equivalence (A vs B, law presets, rewrite buttons, counterexample row) and
+  Quantifiers (own predicate, ∀/∃ for x and y, swap order, negate, adjustable domain, 2D grid with witnesses ringed).
+- `ExprTree.tsx`: tidy layout (leaves get columns, operators centered), so wide trees no longer clip.
+- Styles: `/* logic: symbol keypad, expression fields, step-by-step tables */` in `styles.css` (classes `lk-`, `lt-`, `lq-`), using the unit's `--accent`.
+
+## Suggested next steps (ask the owner first)
+
+1. Owner review of the new System Architecture visuals. Expect style feedback (they care about
+   look and feel) and requests to make tools match the reading more closely.
+2. Optional Luhn checksum section after Hamming (the course bank tests it).
+3. Audit Data Structures (`data.ts`) the same way as System Architecture: convert it to sections,
+   give each a matching visual, compare with ReviewApp's `src/modules/data/questions.ts`.
+4. Consider bringing Discrete's visuals into the wood style, but only if the owner asks.
+5. Home page still has ReviewApp's dark dot-field hero and rounded Nunito tiles. Confirm before redesigning.
+6. Section thumbnails for System Architecture and Data Structures.
+7. Create a GitHub repo, push, set up GitHub Pages (`homepage` is already set).
+8. Delete the dead CSS.

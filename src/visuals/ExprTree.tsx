@@ -117,22 +117,18 @@ function layout(root: Node) {
   const out: Placed[] = [];
   let col = 0;
   let depth = 0;
-  const walk = (n: Node, d: number, parent?: Placed) => {
+  // Leaves take one column each; an operator sits centered over its children.
+  const walk = (n: Node, d: number): Placed => {
     depth = Math.max(depth, d);
-    const p: Placed = { n, x: 0, y: d, px: parent?.x, py: parent?.y };
-    if (n.kids.length === 2) {
-      walk(n.kids[0], d + 1, p);
-      p.x = col++;
-      out.push(p);
-      walk(n.kids[1], d + 1, p);
-    } else if (n.kids.length === 1) {
-      p.x = col++;
-      out.push(p);
-      walk(n.kids[0], d + 1, p);
+    const p: Placed = { n, x: 0, y: d };
+    if (n.kids.length) {
+      const kids = n.kids.map((k) => walk(k, d + 1));
+      p.x = (kids[0].x + kids[kids.length - 1].x) / 2;
     } else {
       p.x = col++;
-      out.push(p);
     }
+    out.push(p);
+    return p;
   };
   walk(root, 0);
   // Children were placed before parents' x was known; relink parent coordinates.
@@ -164,8 +160,11 @@ function ExprTree() {
   const done = new Map(run?.order.slice(0, step).map((o) => [o.id, o.value]) ?? []);
   const current = run && step > 0 ? run.order[step - 1] : null;
   const finished = run && step >= run.order.length;
-  const W = 520;
-  const X = (c: number) => ((c + 0.5) / (placed?.cols || 1)) * W;
+  // One fixed-width column per node (in-order), so wide trees scale down instead of overlapping or clipping.
+  const COL = 60;
+  const PAD = 8;
+  const W = Math.max(320, (placed?.cols || 1) * COL + PAD * 2);
+  const X = (c: number) => PAD + (c + 0.5) * COL + (W - PAD * 2 - (placed?.cols || 1) * COL) / 2;
   const Y = (d: number) => 30 + d * 58;
 
   const choose = (s: string) => { setSrc(s); setStep(0); };
@@ -210,7 +209,7 @@ function ExprTree() {
               const label = leaf ? String(p.n.value) : p.n.op === "neg" ? "−" : p.n.op;
               return (
                 <g key={p.n.id} className={`t-node expr-node ${has ? "is-done" : ""} ${current?.id === p.n.id ? "is-current" : ""} ${skipped ? "is-skipped" : ""} ${leaf ? "is-leaf" : ""}`} transform={`translate(${X(p.x)} ${Y(p.y)})`}>
-                  <rect x={-24} y={-15} width={48} height={30} rx={10} />
+                  <rect x={-24} y={-15} width={48} height={30} rx={3} />
                   <text dy="5">{has && !leaf ? show(done.get(p.n.id)!) : label}</text>
                   {has && !leaf && <text className="expr-op" dy="-20">{p.n.op === "neg" ? "−" : p.n.op}</text>}
                 </g>
