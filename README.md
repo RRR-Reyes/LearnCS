@@ -1,8 +1,8 @@
 # LearnCS
 
-Computer science you can see. Each unit is one long Seeing Theory–style chapter: the
-reading scrolls on the left, and each concept's interactive visual takes over a fixed
-right column as you reach it. A few quick multiple-choice checks sit in the reading.
+Learn everything you need to know about the CS/IT major for DSU! 
+This includes a range of lower- and upper-level classes with interactive visuals!
+Look around to see what you can expect when you take these courses in the future!
 
 Started as a copy of [ReviewApp](https://github.com/RRR-Reyes/ReviewApp), keeping the
 chapter engine and visuals and leaving the question banks and practice drawer behind.
